@@ -1,0 +1,19 @@
+[project]
+name = "medium-clone"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.16.5",
+    "argon2-cffi>=25.1.0",
+    "boto3>=1.40.50",
+    "celery>=5.5.3",
+    "fastapi[all]>=0.118.3",
+    "passlib>=1.7.4",
+    "psycopg2-binary>=2.9.11",
+    "python-decouple>=3.8",
+    "python-jose[cryptography]>=3.5.0",
+    "redis>=6.4.0",
+    "sqlalchemy>=2.0.44",
+]
