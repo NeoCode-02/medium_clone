@@ -16,5 +16,35 @@ dependencies = [
     "python-jose[cryptography]>=3.5.0",
     "python-slugify>=8.0.4",
     "redis>=6.4.0",
+    "ruff>=0.14.0",
     "sqlalchemy>=2.0.44",
+    "starlette-admin>=0.15.1",
 ]
+
+# RUFF configs
+[tool.ruff]
+# General settings
+target-version = "py312"
+line-length = 88
+
+# Enable rules
+lint.select = ["E", "F", "I", "N", "UP", "B", "C90", "RUF"]
+
+lint.ignore = [
+    "E501",     # line too long
+    "RUF001",   # ambiguous unicode character in code
+    "RUF002",   # ambiguous unicode character in docstring
+]  
+
+# Paths to exclude
+exclude = ["migrations", "__pycache__", ".venv", "alembic"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra --tb=short --strict-markers"
+testpaths = ["tests"]

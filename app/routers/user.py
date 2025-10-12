@@ -1,24 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
-from app.utils.dependencies import (
-    get_db,
-    get_current_active_user,
-    get_current_admin_user
-)
-from app.schemas.user import UserOut, UserUpdate, UserPasswordUpdate
+
 from app.models.user import User
+from app.schemas.user import UserOut, UserPasswordUpdate, UserUpdate
+from app.utils.dependencies import (
+    get_current_active_user,
+    get_current_admin_user,
+    get_db,
+)
 from app.utils.password import hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/", response_model=List[UserOut])
+@router.get("/", response_model=list[UserOut])
 def get_all_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
 ):
     """Get all users (admin only)"""
     users = db.query(User).offset(skip).limit(limit).all()
@@ -37,8 +37,7 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return user
 
@@ -49,8 +48,7 @@ def get_user_by_username(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return user
 
@@ -59,27 +57,26 @@ def get_user_by_username(username: str, db: Session = Depends(get_db)):
 def update_my_profile(
     user_update: UserUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Update current user profile"""
-    
+
     if user_update.username and user_update.username != current_user.username:
-        existing_user = db.query(User).filter(
-            User.username == user_update.username
-        ).first()
+        existing_user = (
+            db.query(User).filter(User.username == user_update.username).first()
+        )
         if existing_user:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already taken"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
             )
         current_user.username = user_update.username
-    
+
     if user_update.bio is not None:
         current_user.bio = user_update.bio
-    
+
     if user_update.avatar is not None:
         current_user.avatar = user_update.avatar
-    
+
     db.commit()
     db.refresh(current_user)
     return current_user
@@ -89,27 +86,24 @@ def update_my_profile(
 def update_password(
     password_update: UserPasswordUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Update current user password"""
-    
 
     if not verify_password(password_update.old_password, current_user.hashed_password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect password"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password"
         )
-    
+
     current_user.hashed_password = hash_password(password_update.new_password)
     db.commit()
-    
+
     return {"message": "Password updated successfully"}
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_my_account(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)
 ):
     """Delete current user account"""
     db.delete(current_user)
@@ -121,16 +115,15 @@ def delete_my_account(
 def activate_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
 ):
     """Activate user account (admin only)"""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     user.is_active = True
     db.commit()
     db.refresh(user)
@@ -141,16 +134,15 @@ def activate_user(
 def deactivate_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
 ):
     """Deactivate user account (admin only)"""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     user.is_active = False
     db.commit()
     db.refresh(user)
@@ -161,16 +153,15 @@ def deactivate_user(
 def make_user_admin(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
 ):
     """Grant admin privileges to user (admin only)"""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     user.is_admin = True
     db.commit()
     db.refresh(user)
@@ -181,16 +172,15 @@ def make_user_admin(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
 ):
     """Delete user by ID (admin only)"""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     db.delete(user)
     db.commit()
     return None

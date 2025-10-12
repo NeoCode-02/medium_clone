@@ -1,8 +1,14 @@
 import redis
 from fastapi import HTTPException, status
+
 from app.core.config import settings
 
-r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, decode_responses=True)
+r = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+    decode_responses=True,
+)
 
 
 def rate_limit(key: str, limit: int, window: int):
@@ -12,5 +18,5 @@ def rate_limit(key: str, limit: int, window: int):
     elif current > limit:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many requests, please try again later"
+            detail="Too many requests, please try again later",
         )

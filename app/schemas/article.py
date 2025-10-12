@@ -1,15 +1,16 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
 from datetime import datetime
-from app.schemas.user import UserOut
+
+from pydantic import BaseModel, Field
+
 from app.schemas.tag import TagOut
+from app.schemas.user import UserOut
 
 
 class ArticleBase(BaseModel):
     title: str = Field(..., max_length=150)
-    description: Optional[str] = None
+    description: str | None = None
     body: str
-    tags: Optional[List[str]] = []
+    tags: list[str] | None = []
 
 
 class ArticleCreate(ArticleBase):
@@ -17,22 +18,22 @@ class ArticleCreate(ArticleBase):
 
 
 class ArticleUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    body: Optional[str] = None
-    tags: Optional[List[str]] = None
+    title: str | None = None
+    description: str | None = None
+    body: str | None = None
+    tags: list[str] | None = None
 
 
 class ArticleOut(BaseModel):
     id: int
     title: str
     slug: str
-    description: Optional[str]
+    description: str | None
     body: str
     likes_count: int
     views_count: int
     author: UserOut
-    tags: List[TagOut] = []
+    tags: list[TagOut] = []
     created_at: datetime
     updated_at: datetime
 

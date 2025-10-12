@@ -1,9 +1,8 @@
-from sqlalchemy import Integer, String, Text, ForeignKey, Table, Column
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import List
+
 from app.database import Base
 from app.models.time_mixin import TimeMixin
-
 
 article_tags = Table(
     "article_tags",
@@ -19,7 +18,7 @@ class Tag(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
-    articles: Mapped[List["Article"]] = relationship(
+    articles: Mapped[list["Article"]] = relationship(
         "Article", secondary=article_tags, back_populates="tags"
     )
 
@@ -44,7 +43,7 @@ class Article(Base, TimeMixin):
 
     author = relationship("User", back_populates="articles")
     comments = relationship("Comment", back_populates="article", cascade="all, delete")
-    tags: Mapped[List["Tag"]] = relationship(
+    tags: Mapped[list["Tag"]] = relationship(
         "Tag", secondary=article_tags, back_populates="articles"
     )
 

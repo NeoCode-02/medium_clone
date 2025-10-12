@@ -1,7 +1,8 @@
-import redis
 import random
-from app.core.config import settings
 
+import redis
+
+from app.core.config import settings
 
 r = redis.Redis.from_url(settings.CELERY_BROKER_URL, decode_responses=True)
 
@@ -39,7 +40,6 @@ def delete_code(email: str, code_type: str) -> None:
     """Delete a stored verification or password-reset code."""
     key = _make_key(code_type, email)
     r.delete(key)
-
 
 
 # Article Views and Likes Counting

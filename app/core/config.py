@@ -1,5 +1,6 @@
-from decouple import config, Csv
 from pathlib import Path
+
+from decouple import Csv, config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

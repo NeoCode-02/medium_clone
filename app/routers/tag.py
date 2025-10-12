@@ -1,38 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List
-from app.utils.dependencies import get_db, get_current_admin_user
-from app.schemas.tag import TagOut, TagCreate
-from app.models.article import Tag, Article, article_tags
+from sqlalchemy.orm import Session
+
+from app.models.article import Article, Tag, article_tags
 from app.models.user import User
+from app.schemas.tag import TagCreate, TagOut
+from app.utils.dependencies import get_current_admin_user, get_db
 
 router = APIRouter(prefix="/tags", tags=["Tags"])
 
 
-@router.get("/", response_model=List[TagOut])
-def get_all_tags(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db)
-):
+@router.get("/", response_model=list[TagOut])
+def get_all_tags(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all tags"""
     tags = db.query(Tag).offset(skip).limit(limit).all()
     return tags
 
 
-@router.get("/popular", response_model=List[dict])
-def get_popular_tags(
-    limit: int = 20,
-    db: Session = Depends(get_db)
-):
+@router.get("/popular", response_model=list[dict])
+def get_popular_tags(limit: int = 20, db: Session = Depends(get_db)):
     """Get popular tags with article count"""
 
     popular_tags = (
         db.query(
             Tag.id,
             Tag.name,
-            func.count(article_tags.c.article_id).label("article_count")
+            func.count(article_tags.c.article_id).label("article_count"),
         )
         .outerjoin(article_tags, Tag.id == article_tags.c.tag_id)
         .group_by(Tag.id, Tag.name)
@@ -40,13 +33,9 @@ def get_popular_tags(
         .limit(limit)
         .all()
     )
-    
+
     return [
-        {
-            "id": tag.id,
-            "name": tag.name,
-            "article_count": tag.article_count
-        }
+        {"id": tag.id, "name": tag.name, "article_count": tag.article_count}
         for tag in popular_tags
     ]
 
@@ -57,8 +46,7 @@ def get_tag_by_name(tag_name: str, db: Session = Depends(get_db)):
     tag = db.query(Tag).filter(Tag.name == tag_name.lower()).first()
     if not tag:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tag not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found"
         )
     return tag
 
@@ -67,26 +55,23 @@ def get_tag_by_name(tag_name: str, db: Session = Depends(get_db)):
 def create_tag(
     tag: TagCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
 ):
     """Create new tag (admin only)"""
-    
+
     # Check if tag already exists
-    existing_tag = db.query(Tag).filter(
-        Tag.name == tag.name.lower()
-    ).first()
-    
+    existing_tag = db.query(Tag).filter(Tag.name == tag.name.lower()).first()
+
     if existing_tag:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Tag already exists"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Tag already exists"
         )
-    
+
     new_tag = Tag(name=tag.name.lower())
     db.add(new_tag)
     db.commit()
     db.refresh(new_tag)
-    
+
     return new_tag
 
 
@@ -94,16 +79,15 @@ def create_tag(
 def delete_tag(
     tag_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
 ):
     """Delete tag (admin only)"""
     tag = db.query(Tag).filter(Tag.id == tag_id).first()
     if not tag:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tag not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found"
         )
-    
+
     db.delete(tag)
     db.commit()
     return None
@@ -111,19 +95,15 @@ def delete_tag(
 
 @router.get("/{tag_name}/articles")
 def get_articles_by_tag(
-    tag_name: str,
-    skip: int = 0,
-    limit: int = 20,
-    db: Session = Depends(get_db)
+    tag_name: str, skip: int = 0, limit: int = 20, db: Session = Depends(get_db)
 ):
     """Get all articles with specific tag"""
     tag = db.query(Tag).filter(Tag.name == tag_name.lower()).first()
     if not tag:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tag not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found"
         )
-    
+
     articles = (
         db.query(Article)
         .join(Article.tags)
@@ -132,5 +112,5 @@ def get_articles_by_tag(
         .limit(limit)
         .all()
     )
-    
+
     return articles

@@ -1,15 +1,19 @@
-from celery import Celery
-from app.core.config import settings
 import redis
-from app.database import SessionLocal
+from celery import Celery
+
 from app import models
+from app.core.config import settings
+from app.database import SessionLocal
 
-
-celery = Celery("sync_metrics", broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)
+celery = Celery(
+    "sync_metrics",
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND,
+)
 
 
 try:
-    REDIS_URL = getattr(settings, "REDIS_URL")
+    REDIS_URL = settings.REDIS_URL
 except Exception:
     REDIS_URL = None
 
@@ -33,7 +37,11 @@ def sync_article_metrics():
             if views == 0:
                 r.delete(k)
                 continue
-            article = session.query(models.Article).filter(models.Article.id == article_id).first()
+            article = (
+                session.query(models.Article)
+                .filter(models.Article.id == article_id)
+                .first()
+            )
             if article:
                 # persist incrementally
                 article.views_count = (getattr(article, "views_count", 0) or 0) + views
@@ -51,7 +59,11 @@ def sync_article_metrics():
             if likes == 0:
                 r.delete(k)
                 continue
-            article = session.query(models.Article).filter(models.Article.id == article_id).first()
+            article = (
+                session.query(models.Article)
+                .filter(models.Article.id == article_id)
+                .first()
+            )
             if article:
                 article.likes_count = (getattr(article, "likes_count", 0) or 0) + likes
                 session.add(article)

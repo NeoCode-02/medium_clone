@@ -1,9 +1,10 @@
-from celery import Celery
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import smtplib
-from app.core.config import settings
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
+from celery import Celery
+
+from app.core.config import settings
 
 celery = Celery(
     "email_tasks",

@@ -1,12 +1,17 @@
-from typing import Generator
+from collections.abc import Generator
+from typing import Annotated
+
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+from fastapi.security import (
+    HTTPBearer,
+    OAuth2PasswordBearer,
+)
 from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+
+from app import models
 from app.core.config import settings
 from app.database import SessionLocal
-from app import models
-from typing import Annotated
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -23,14 +28,18 @@ def get_db() -> Generator:
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         user_id: str = payload.get("sub")
         if not user_id:
             raise credentials_exception
@@ -43,7 +52,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 
-def get_current_active_user(current_user: models.User = Depends(get_current_user)) -> models.User:
+def get_current_active_user(
+    current_user: models.User = Depends(get_current_user),
+) -> models.User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
