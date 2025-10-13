@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+.venv
+venv/
+.git
+.gitignore
+.idea
+.DS_Store
+__MACOSX
+tests/
