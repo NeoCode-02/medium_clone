@@ -12,7 +12,7 @@ router = APIRouter(prefix="/comments", tags=["Comments"])
 
 
 @router.get("/article/{article_slug}", response_model=list[CommentOut])
-def get_comments_by_article(
+async def get_comments_by_article(
     article_slug: str, skip: int = 0, limit: int = 50, db: Session = Depends(get_db)
 ):
     """Get all comments for a specific article"""
@@ -36,7 +36,7 @@ def get_comments_by_article(
 
 
 @router.get("/{comment_id}", response_model=CommentOut)
-def get_comment(comment_id: int, db: Session = Depends(get_db)):
+async def get_comment(comment_id: int, db: Session = Depends(get_db)):
     """Get specific comment by ID"""
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
@@ -51,7 +51,7 @@ def get_comment(comment_id: int, db: Session = Depends(get_db)):
     response_model=CommentOut,
     status_code=status.HTTP_201_CREATED,
 )
-def create_comment(
+async def create_comment(
     article_slug: str,
     comment: CommentCreate,
     db: Session = Depends(get_db),
@@ -77,7 +77,7 @@ def create_comment(
 
 
 @router.put("/{comment_id}", response_model=CommentOut)
-def update_comment(
+async def update_comment(
     comment_id: int,
     comment_update: CommentCreate,
     db: Session = Depends(get_db),
@@ -104,7 +104,7 @@ def update_comment(
 
 
 @router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_comment(
+async def delete_comment(
     comment_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -130,7 +130,7 @@ def delete_comment(
 
 
 @router.get("/user/{username}", response_model=list[CommentOut])
-def get_comments_by_user(
+async def get_comments_by_user(
     username: str, skip: int = 0, limit: int = 50, db: Session = Depends(get_db)
 ):
     """Get all comments by specific user"""
@@ -154,7 +154,7 @@ def get_comments_by_user(
 
 
 @router.get("/user/me/comments", response_model=list[CommentOut])
-def get_my_comments(
+async def get_my_comments(
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),

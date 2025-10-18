@@ -14,7 +14,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/", response_model=list[UserOut])
-def get_all_users(
+async def get_all_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
@@ -26,13 +26,13 @@ def get_all_users(
 
 
 @router.get("/me", response_model=UserOut)
-def get_my_profile(current_user: User = Depends(get_current_active_user)):
+async def get_my_profile(current_user: User = Depends(get_current_active_user)):
     """Get current user profile"""
     return current_user
 
 
 @router.get("/{user_id}", response_model=UserOut)
-def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     """Get user by ID (public)"""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -43,7 +43,7 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/username/{username}", response_model=UserOut)
-def get_user_by_username(username: str, db: Session = Depends(get_db)):
+async def get_user_by_username(username: str, db: Session = Depends(get_db)):
     """Get user by username (public)"""
     user = db.query(User).filter(User.username == username).first()
     if not user:
@@ -54,7 +54,7 @@ def get_user_by_username(username: str, db: Session = Depends(get_db)):
 
 
 @router.put("/me", response_model=UserOut)
-def update_my_profile(
+async def update_my_profile(
     user_update: UserUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -83,7 +83,7 @@ def update_my_profile(
 
 
 @router.put("/me/password", status_code=status.HTTP_200_OK)
-def update_password(
+async def update_password(
     password_update: UserPasswordUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -102,7 +102,7 @@ def update_password(
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-def delete_my_account(
+async def delete_my_account(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)
 ):
     """Delete current user account"""
@@ -112,7 +112,7 @@ def delete_my_account(
 
 
 @router.patch("/{user_id}/activate", response_model=UserOut)
-def activate_user(
+async def activate_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
@@ -131,7 +131,7 @@ def activate_user(
 
 
 @router.patch("/{user_id}/deactivate", response_model=UserOut)
-def deactivate_user(
+async def deactivate_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
@@ -150,7 +150,7 @@ def deactivate_user(
 
 
 @router.patch("/{user_id}/make-admin", response_model=UserOut)
-def make_user_admin(
+async def make_user_admin(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
@@ -169,7 +169,7 @@ def make_user_admin(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(
+async def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),

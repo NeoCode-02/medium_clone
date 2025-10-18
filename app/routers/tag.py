@@ -11,14 +11,14 @@ router = APIRouter(prefix="/tags", tags=["Tags"])
 
 
 @router.get("/", response_model=list[TagOut])
-def get_all_tags(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+async def get_all_tags(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all tags"""
     tags = db.query(Tag).offset(skip).limit(limit).all()
     return tags
 
 
 @router.get("/popular", response_model=list[dict])
-def get_popular_tags(limit: int = 20, db: Session = Depends(get_db)):
+async def get_popular_tags(limit: int = 20, db: Session = Depends(get_db)):
     """Get popular tags with article count"""
 
     popular_tags = (
@@ -41,7 +41,7 @@ def get_popular_tags(limit: int = 20, db: Session = Depends(get_db)):
 
 
 @router.get("/{tag_name}", response_model=TagOut)
-def get_tag_by_name(tag_name: str, db: Session = Depends(get_db)):
+async def get_tag_by_name(tag_name: str, db: Session = Depends(get_db)):
     """Get tag by name"""
     tag = db.query(Tag).filter(Tag.name == tag_name.lower()).first()
     if not tag:
@@ -52,7 +52,7 @@ def get_tag_by_name(tag_name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=TagOut, status_code=status.HTTP_201_CREATED)
-def create_tag(
+async def create_tag(
     tag: TagCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
@@ -76,7 +76,7 @@ def create_tag(
 
 
 @router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_tag(
+async def delete_tag(
     tag_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
@@ -94,7 +94,7 @@ def delete_tag(
 
 
 @router.get("/{tag_name}/articles")
-def get_articles_by_tag(
+async def get_articles_by_tag(
     tag_name: str, skip: int = 0, limit: int = 20, db: Session = Depends(get_db)
 ):
     """Get all articles with specific tag"""

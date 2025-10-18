@@ -21,7 +21,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(user: UserCreate, db: Session = Depends(get_db)):
+async def register(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user and send verification email"""
 
     is_first_user = db.query(User).count() == 0
@@ -64,7 +64,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(
+async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     """Login with username/email and password"""
@@ -105,7 +105,7 @@ def login(
 
 
 @router.post("/verify-email", status_code=status.HTTP_200_OK)
-def verify_email(verification: EmailVerificationConfirm, db: Session = Depends(get_db)):
+async def verify_email(verification: EmailVerificationConfirm, db: Session = Depends(get_db)):
     """Verify email with 6-digit code"""
 
     # Rate limiting
@@ -137,7 +137,7 @@ def verify_email(verification: EmailVerificationConfirm, db: Session = Depends(g
 
 
 @router.post("/resend-verification", status_code=status.HTTP_200_OK)
-def resend_verification(email: str, db: Session = Depends(get_db)):
+async def resend_verification(email: str, db: Session = Depends(get_db)):
     """Resend verification code"""
 
     # Rate limiting
@@ -162,7 +162,7 @@ def resend_verification(email: str, db: Session = Depends(get_db)):
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
-def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
+async def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
     """Request password reset code"""
 
     # Rate limiting
@@ -181,7 +181,7 @@ def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db)
 
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
-def reset_password(reset: PasswordResetConfirm, db: Session = Depends(get_db)):
+async def reset_password(reset: PasswordResetConfirm, db: Session = Depends(get_db)):
     """Reset password with verification code"""
 
     # Rate limiting
@@ -212,7 +212,7 @@ def reset_password(reset: PasswordResetConfirm, db: Session = Depends(get_db)):
 
 
 @router.post("/refresh", response_model=Token)
-def refresh_token(refresh_token: str):
+async def refresh_token(refresh_token: str):
     """Get new access token using refresh token"""
 
     payload = decode_token(refresh_token)
@@ -239,6 +239,6 @@ def refresh_token(refresh_token: str):
 
 
 @router.get("/me", response_model=UserOut)
-def get_current_user_info(current_user: User = Depends(get_current_user)):
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current authenticated user information"""
     return current_user

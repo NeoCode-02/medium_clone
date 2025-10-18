@@ -18,7 +18,7 @@ from app.utils.redis_service import (
 router = APIRouter(prefix="/articles", tags=["Articles"])
 
 
-def create_slug(title: str, db: Session) -> str:
+async def create_slug(title: str, db: Session) -> str:
     """Generate unique slug from title"""
     base_slug = slugify(title)
     slug = base_slug
@@ -31,7 +31,7 @@ def create_slug(title: str, db: Session) -> str:
     return slug
 
 
-def get_or_create_tags(tag_names: list[str], db: Session) -> list[Tag]:
+async def get_or_create_tags(tag_names: list[str], db: Session) -> list[Tag]:
     """Get existing tags or create new ones"""
     tags = []
     for tag_name in tag_names:
@@ -45,7 +45,7 @@ def get_or_create_tags(tag_names: list[str], db: Session) -> list[Tag]:
 
 
 @router.get("/", response_model=list[ArticleOut])
-def get_articles(
+async def get_articles(
     skip: int = 0,
     limit: int = 20,
     tag: str | None = None,
@@ -79,7 +79,7 @@ def get_articles(
 
 
 @router.get("/feed", response_model=list[ArticleOut])
-def get_feed(
+async def get_feed(
     skip: int = 0,
     limit: int = 20,
     db: Session = Depends(get_db),
@@ -104,7 +104,7 @@ def get_feed(
 
 
 @router.get("/popular", response_model=list[ArticleOut])
-def get_popular_articles(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+async def get_popular_articles(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
     """Get popular articles by views"""
     articles = (
         db.query(Article)
@@ -122,7 +122,7 @@ def get_popular_articles(skip: int = 0, limit: int = 20, db: Session = Depends(g
 
 
 @router.get("/{slug}", response_model=ArticleOut)
-def get_article(slug: str, db: Session = Depends(get_db)):
+async def get_article(slug: str, db: Session = Depends(get_db)):
     """Get article by slug and increment view count"""
     article = db.query(Article).filter(Article.slug == slug).first()
     if not article:
@@ -138,7 +138,7 @@ def get_article(slug: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ArticleOut, status_code=status.HTTP_201_CREATED)
-def create_article(
+async def create_article(
     article: ArticleCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -166,7 +166,7 @@ def create_article(
 
 
 @router.put("/{slug}", response_model=ArticleOut)
-def update_article(
+async def update_article(
     slug: str,
     article_update: ArticleUpdate,
     db: Session = Depends(get_db),
@@ -209,7 +209,7 @@ def update_article(
 
 
 @router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_article(
+async def delete_article(
     slug: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -233,7 +233,7 @@ def delete_article(
 
 
 @router.post("/{slug}/like", status_code=status.HTTP_200_OK)
-def like_article(
+async def like_article(
     slug: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -252,7 +252,7 @@ def like_article(
 
 
 @router.delete("/{slug}/like", status_code=status.HTTP_200_OK)
-def unlike_article(
+async def unlike_article(
     slug: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -271,7 +271,7 @@ def unlike_article(
 
 
 @router.get("/author/{username}", response_model=list[ArticleOut])
-def get_articles_by_author(
+async def get_articles_by_author(
     username: str, skip: int = 0, limit: int = 20, db: Session = Depends(get_db)
 ):
     """Get all articles by specific author"""
